@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectName": {
+      "value": "insta-ai-agent"
+    },
+    "location": {
+      "value": "East US"
+    },
+    "environment": {
+      "value": "dev"
+    },
+    "adminUsername": {
+      "value": "admin"
+    },
+    "adminPassword": {
+      "value": "TestAdmin123!"
+    },
+    "instagramAppId": {
+      "value": "123456789"
+    },
+    "instagramAppSecret": {
+      "value": "test_secret_123"
+    },
+    "webhookVerifyToken": {
+      "value": "test_webhook_token_456"
+    }
+  }
+} 

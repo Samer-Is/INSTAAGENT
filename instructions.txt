@@ -1,0 +1,274 @@
+Of course. You want the complete, unabridged, and final blueprint in a single block for easy use. No shortcuts. Every phase and every task will be fully detailed.
+
+Here is the complete and final development prompt.
+
+CURSOR AI DEVELOPMENT PROMPT: Instagram AI Agent SaaS Platform (Admin-Managed)
+Project Objective: Construct a comprehensive, multi-tenant SaaS web application that provides a GPT-4o powered agent to manage Instagram Direct Messages. The platform will use an admin-managed whitelist for onboarding and feature two separate, rich front-end applications: one for merchants and a private one for the platform vendor/admin.
+
+Core Principles:
+
+Admin-Controlled Access: Merchants are granted access via a whitelist controlled exclusively through a secure Vendor Admin Dashboard.
+
+Separate Interfaces: A public-facing site for merchants and a private, separately-hosted dashboard for the admin.
+
+Rich & Functional UI: Both dashboards will be designed to be simple to use but comprehensive in their features, providing all necessary controls and information.
+
+Technology Stack:
+
+Cloud: Microsoft Azure
+
+AI Model: GPT-4o (via Azure OpenAI Service)
+
+Backend: Azure Functions (or App Service) using Node.js/TypeScript or Python/FastAPI
+
+Database: Azure Cosmos DB (NoSQL API)
+
+Frontend (Merchant): React with Vite on Azure Static Web Apps.
+
+Frontend (Admin): A separate React with Vite project, also on Azure Static Web Apps, with a non-public URL.
+
+CI/CD: GitHub Actions (https://github.com/Samer-Is/INSTAAGENT)
+
+Secrets: Azure Key Vault
+
+File Storage: Azure Blob Storage
+
+Search/Indexing: Azure Cognitive Search
+
+Universal System Prompt (Version 2.0)
+[SYSTEM_IDENTITY]
+You are a world-class conversational AI assistant for an e-commerce brand on Instagram. Your name is not "AI" or "bot"; you are a member of the team. Your persona is cool, friendly, and professional, like a helpful store insider who knows everything about the products and business. You are highly attentive to detail and your primary goal is to provide an exceptionally human-like and helpful customer experience.
+
+[PRIMARY_DIRECTIVE]
+Your absolute, non-negotiable golden rule is: DO NOT ASSUME. DO NOT HALLUCINATE. DO NOT MAKE UP ANSWERS.
+
+Every single piece of information you provide to a customer must be derived exclusively from the data provided to you for the specific merchant. This data includes:
+
+[Merchant Business Rules & Info] (Working hours, shipping policy, etc.)
+
+[Product Catalog] (Item names, descriptions, prices, stock, media links.)
+
+[Current Conversation History] (The last 20 messages.)
+
+If the answer to a customer's question is not found in the provided data, you MUST NOT invent an answer. Instead, you must politely state that you don't have that specific information and offer to help with something else.
+Example of a safe response: "ما عندي جواب أكيد على هاد السؤال للأسف، بس بقدر أساعدك بشي تاني؟" (Unfortunately, I don't have a definite answer for that question, but can I help with something else?)
+
+[COMMUNICATION_PROTOCOL]
+
+Primary Language: Your default communication language is Jordanian Arabic (اللهجة الأردنية). Your tone should be natural and conversational.
+
+Language Switching: Analyze the customer's language. If the customer is writing primarily in English, you must switch and reply in fluent, natural English. If they mix, default back to Jordanian Arabic.
+
+Human-like Typing: Type like a real person. Use natural-sounding phrases, appropriate emojis (👍, 😄, 🙏), and conversational flow. Avoid robotic lists and jargon.
+
+No Field Names: Do NOT expose the internal data field names. Weave the information into natural sentences.
+
+[CONTEXT & ACTION_RULES]
+
+Full Context Awareness: Before EVERY response, you MUST silently review the last 20 messages in the [Current Conversation History]. Understand the context completely. Is this a follow-up question? Are they changing their mind? Your answer must be relevant to the ongoing chat.
+
+Knowledge Base is Truth: When a question is asked, your internal thought process must be: (1) Scan [Merchant Business Rules]. (2) Scan [Product Catalog]. (3) Formulate an answer based only on what you find.
+
+Handling Media Links: The media_link in the product catalog is a URL to a photo or video. You MUST NOT send this link unless the customer explicitly asks for a "photo", "image", "صورة", "أشوف شكله", or a similar visual request for a specific item.
+
+The Full Phased Development Plan
+Phase 0: Project Scaffolding & Core Infrastructure Setup
+Goal: Prepare the foundational environment for development and deployment.
+
+Tasks:
+
+Task 0.1: Initialize GitHub Repository: Structure the monorepo at https://github.com/Samer-Is/INSTAAGENT with three root directories: /backend, /frontend-merchant, and /frontend-admin.
+
+Task 0.2: Provision Azure Resources: Ensure the full suite of Azure resources is provisioned. This includes a single Resource Group containing: Azure Cosmos DB, Azure Key Vault, Azure OpenAI Service, an Azure App Service Plan with an App Service (or Function App), Azure Blob Storage, Azure Cognitive Search, and two Azure Static Web App resources—one for the merchant dashboard and one for the admin dashboard.
+
+Task 0.3: Setup CI/CD: Create a GitHub Actions workflow file (.github/workflows/deploy.yml) that defines separate jobs to build and deploy each of the three applications (backend, frontend-merchant, frontend-admin) to their respective Azure services.
+
+Task 0.4: Admin Credentials Setup: In your Azure App Service / Function App resource in the Azure Portal, navigate to Settings -> Configuration. Add two new "Application settings" that will serve as your permanent admin login:
+
+ADMIN_USERNAME: Set this to your desired admin username (e.g., "admin").
+
+ADMIN_PASSWORD: Set this to a strong, unique password that you will use to log in. Your backend code will securely access these settings as environment variables.
+
+Validation: The GitHub Actions workflow successfully builds and deploys all three codebases. All Azure resources are provisioned. The admin credentials are set as environment variables in the backend's Azure configuration.
+
+Status: [PENDING]
+
+Phase 1: Vendor Admin Dashboard & Whitelist Control
+Goal: Build the secure admin-only dashboard for managing the platform's access control.
+
+Tasks:
+
+Task 1.1: Admin Authentication API: In the /backend codebase, create a secure login endpoint: POST /api/admin/login. This endpoint's logic will:
+
+Read the ADMIN_USERNAME and ADMIN_PASSWORD from the server's environment variables.
+
+When a login request is received, use a secure hashing library (like bcrypt) to compare the password from the request body against the ADMIN_PASSWORD from the environment. Do not compare plain text passwords.
+
+If credentials are correct, generate and return a long-lasting JSON Web Token (JWT) specifically for admin access. This JWT will be required for all subsequent admin API calls.
+
+Task 1.2: Whitelist Management API: Create secure CRUD API endpoints for the whitelist. These endpoints must be protected middleware that validates the admin JWT.
+
+GET /api/admin/whitelist: Fetches and returns all documents from the whitelist container in Cosmos DB.
+
+POST /api/admin/whitelist: Receives a JSON body like { "pageId": "123...", "merchantName": "Samer's Store" } and creates a new document in the whitelist container.
+
+DELETE /api/admin/whitelist/{id}: Deletes a document from the whitelist container based on its ID.
+
+Task 1.3: Admin Dashboard Frontend (/frontend-admin): Build the complete React application for the admin dashboard.
+
+Create a clean, professional login page with username and password fields. This page will call the /api/admin/login endpoint. Upon success, it must store the received JWT securely in the browser (e.g., localStorage).
+
+Implement protected routing. All pages beyond the login page must be inaccessible without a valid JWT.
+
+The main dashboard page should feature a prominent, easy-to-read table displaying the current whitelist (Merchant Name and Page ID).
+
+Above the table, include a simple form with fields for "Merchant Name" and "Instagram Page ID" and an "Add to Whitelist" button. This form will call the POST /api/admin/whitelist endpoint.
+
+Each row in the whitelist table must have a "Delete" button that calls the DELETE /api/admin/whitelist/{id} endpoint and removes the row from the UI upon success.
+
+The interface must provide clear user feedback, such as toast notifications for "Merchant Added" or "Error".
+
+Validation: You can navigate to the unique URL of your admin dashboard. You can log in successfully using the credentials set in Phase 0. From the dashboard, you can add and remove Instagram Page IDs, and the changes are immediately reflected in both the UI and the whitelist container in Cosmos DB.
+
+Status: [PENDING]
+
+Phase 2: Merchant Onboarding & Backend Foundation
+Goal: Build the merchant-facing authentication flow that is gated by the admin-controlled whitelist.
+
+Tasks:
+
+Task 2.1: Data Modeling (Cosmos DB): In the /backend code, formally define the data structures/classes for the merchants and whitelist containers. The merchants schema will hold all merchant-specific configuration, including pageId, pageName, keyVaultSecretName, product_catalog, business_info, and ai_settings.
+
+Task 2.2: Onboarding API (POST /api/onboard):
+
+This endpoint receives an Instagram OAuth authorization code from the merchant frontend.
+
+The backend exchanges this code for a long-lived Instagram Page Access Token and the corresponding page_id.
+
+It then performs a critical check: It queries the whitelist container in Cosmos DB to see if the received page_id exists.
+
+If the page_id is found in the whitelist: The backend proceeds to create a unique secret name, stores the encrypted access token in Azure Key Vault under that name, creates a new document in the merchants container with all the relevant page info and the Key Vault secret reference, and finally returns a JWT session token for the merchant dashboard.
+
+If the page_id is NOT found in the whitelist: The endpoint returns a 403 Forbidden error with a clear message like "This page is not authorized for access."
+
+Task 2.3: Merchant Settings API (GET / PUT /api/settings): Create secure CRUD endpoints for merchants to manage their data. These endpoints must be protected by middleware that validates the merchant's JWT, ensuring a merchant can only access their own document in the merchants container.
+
+Validation: A new merchant can successfully complete the Instagram login flow and be created in the system only if their Instagram page ID was previously added to the whitelist via the admin dashboard. Unauthorized pages are rejected.
+
+Status: [PENDING]
+
+Phase 3: The Basic AI Conversation Loop
+Goal: Achieve the first end-to-end flow: receiving an Instagram message and replying with AI.
+
+Tasks:
+
+Task 3.1: Meta Webhooks Receiver (POST /api/webhooks/instagram): Create the backend endpoint to receive real-time updates from the Meta Graph API. Implement the required verification handshake to prove ownership of the endpoint to Meta.
+
+Task 3.2: Core RAG Logic: When a message event is received at the webhook:
+
+Extract the page_id from the incoming webhook payload to identify which merchant this message is for.
+
+Query the merchants container in Cosmos DB using the page_id to retrieve that specific merchant's entire configuration document (product catalog, business info, etc.).
+
+Retrieve the last 20 messages of the conversation history from the Instagram API to provide context.
+
+Task 3.3: AI Response Generation: Send a request to your Azure OpenAI GPT-4o deployment. This request must be carefully constructed with the Universal System Prompt and the contextual data, including the conversation history and the merchant-specific JSON data (catalog, rules).
+
+Task 3.4: Reply via Graph API: Once GPT-4o returns a response, use the merchant's stored access token (retrieved from Azure Key Vault using the reference in their merchant document) to send the AI-generated message back to the customer via the Instagram Graph API.
+
+Validation: Send a Direct Message to a whitelisted and fully onboarded Instagram page. The webhook fires, the correct merchant context is loaded, the AI generates a relevant response, and the reply appears correctly in the Instagram chat.
+
+Status: [PENDING]
+
+Phase 4: Merchant Dashboard V1
+Goal: Build the rich, functional user interface for merchants to control the system.
+
+Tasks:
+
+Task 4.1: Frontend Scaffolding & Auth (/frontend-merchant): Build the React application. Create a landing/login page that initiates the Instagram OAuth flow. Implement protected routes so that the dashboard is only accessible after a successful onboarding and with a valid merchant JWT.
+
+Task 4.2: Rich Dashboard UI: Create a professional and intuitive multi-page interface with clear navigation (e.g., a sidebar).
+
+Product Catalog Page: Display products in a responsive table with columns for Name, Price, Stock, etc. An "Add Product" button should open a modal with a complete form for all product details. Each row in the table must have Edit and Delete buttons that trigger corresponding modals and API calls.
+
+Business Settings Page: Design a well-organized form with distinct sections for "Business Info" (working hours, terms) and "AI Settings" (custom prompt), with a clear "Save Changes" button that provides feedback on success.
+
+Analytics Page: Design the layout for a future analytics page with placeholders for charts and key performance indicators (e.g., "Messages Processed," "Orders Captured").
+
+Task 4.3: Data Export: On the Product Catalog page, implement a "Download as CSV" button that correctly formats and downloads the product list.
+
+Task 4.4: Live Chat Playground: Create a dedicated page with a polished chat interface (like WhatsApp or Messenger). When the merchant types a message and hits send, it should call a dedicated backend endpoint that runs the full Phase 3 logic and displays the AI's exact simulated response, allowing for safe and immediate testing of their settings.
+
+Validation: A merchant can log in, and use a fully-featured, professional-looking dashboard to manage all their settings, export data, and test their AI's responses accurately.
+
+Status: [PENDING]
+
+Phase 5: Advanced AI - Context & Understanding
+Goal: Make the AI smarter and more perceptive.
+
+Tasks:
+
+Task 5.1: Sentiment Analysis: Modify the AI prompt to add instructions for GPT-4o to first analyze the customer's message for sentiment (e.g., angry, confused, happy, neutral). The prompt should instruct the AI to adjust its tone accordingly and to use a special internal flag (e.g., [HUMAN_HANDOVER]) in its thought process if the sentiment is highly negative or frustrated.
+
+Task 5.2: Intent Analytics: Augment the prompt to instruct the AI to also classify the user's primary intent (e.g., price_inquiry, stock_check, order_placement, shipping_question, other). Store this classified intent along with the message log in a new Cosmos DB container or field. Create a new API endpoint to aggregate this intent data for the merchant.
+
+Task 5.3: Voice Message Transcription: Integrate Azure Cognitive Services (Speech-to-Text). When the Meta webhook payload indicates an audio message has been received, the backend function must download the audio file from the provided Meta URL, send the binary data to the Speech-to-Text API, and use the resulting transcript as the customer's message input for the core AI logic.
+
+Validation: The AI's responses dynamically change tone based on detected customer sentiment. Message logs in the database now contain an 'intent' field. Sending a voice note to the Instagram page results in a correct, context-aware text-based reply from the AI.
+
+Status: [PENDING]
+
+Phase 6: Order Management System
+Goal: Reliably capture and process order information from unstructured chat.
+
+Tasks:
+
+Task 6.1: AI Entity Recognition for Orders: Heavily augment the AI system prompt. Instruct it to identify a clear order_placement intent. When this intent is detected, it must extract key entities: product name, quantity, size, color, customer name, phone number, and full address. It must be instructed to be persistent and ask clarifying questions if any piece of information is missing.
+
+Task 6.2: Order Data Model & API: Create a new orders container in Cosmos DB with fields for all extracted entities, a status field (pending_confirmation, confirmed, shipped), the merchantId, and a timestamp. Create the necessary secure API endpoints for managing these orders.
+
+Task 6.3: AI Order Creation: When the AI has successfully extracted all necessary order information, it should be instructed to make an internal API call to the endpoint created in Task 6.2 to create a new order document with the pending_confirmation status.
+
+Task 6.4: Orders UI: Build a new "Orders Sheet" page in the merchant dashboard. This page will fetch and display all orders in a clean, filterable table. It should clearly show pending orders, and provide a "Confirm" button for the merchant to click, which changes the order's status. The page should also have a CSV export function for confirmed orders.
+
+Validation: A test conversation leading to a complete order results in a new entry appearing in the "Orders Sheet" in the dashboard with the correct details and a "pending" status. The merchant can successfully view and confirm the order.
+
+Status: [PENDING]
+
+Phase 7: Advanced Platform Features
+Goal: Add high-value features for both merchants and the vendor.
+
+Tasks:
+
+Task 7.1: Conversation Handover Protocol: When the AI's internal process flags a conversation for [HUMAN_HANDOVER], the system must trigger a notification to the merchant (e.g., via email using a service like SendGrid). Add a "Live Conversations" view to the merchant dashboard where they can see ongoing chats. This view needs a "Take Over" button that, when clicked, pauses the AI for that specific chat and allows the merchant to type and send messages manually through your platform's backend.
+
+Task 7.2: Knowledge Base Ingestion (RAG):
+
+Create an interface in the merchant dashboard for merchants to upload files (PDF, DOCX) to a dedicated Azure Blob Storage container.
+
+Create an Azure Function that is automatically triggered by a new file upload to Blob Storage. This function will parse the document content, chunk it, and index it in the merchant's dedicated Azure Cognitive Search index, linking it to their merchantId.
+
+Update the core AI logic (from Phase 3) to first perform a query against the merchant's Cognitive Search index for relevant context before calling GPT-4o. This context is then passed to the LLM along with the other data.
+
+Task 7.3: Enhance Vendor Dashboard: Add new pages and components to the admin dashboard built in Phase 1. This should include a view to list all successfully onboarded merchants and a high-level analytics page showing platform-wide stats (e.g., total messages processed, total orders created across all merchants).
+
+Validation: Uploading a PDF with new info makes that content immediately available to the AI in conversations. A conversation flagged by the AI can be successfully taken over by a human via the dashboard. The vendor can log into their dashboard and view platform-wide statistics.
+
+Status: [PENDING]
+
+Phase 8: Proactive Engagement & Growth
+Goal: Implement outbound and automated messaging features.
+
+Tasks:
+
+Task 8.1: State Tracking for Carts: Implement logic to log when a user discusses a specific product in detail (e.g., asks for price and color) but does not proceed to the order placement intent.
+
+Task 8.2: Abandoned Cart Follow-up: Create a scheduled, time-triggered Azure Function that runs periodically (e.g., every hour). This function will scan for "abandoned carts" from the previous task that are older than a configurable time (e.g., 6 hours) and use the AI to generate and send a single, polite follow-up message to the user.
+
+Task 8.3: Back-in-Stock Notifications: When a merchant updates a product's stock in their catalog from 0 to a positive number, trigger a function that finds all users who previously inquired about that specific product (based on message logs) and sends them a one-time "It's back in stock!" notification.
+
+Task 8.4: Broadcast Messaging: Build a UI in the merchant dashboard that allows them to compose a promotional message. The backend will provide a "Send Broadcast" button that sends this message to all users who have interacted with the page in the last 24 hours (strictly adhering to Instagram's 24-hour window policy). The UI must clearly state this limitation.
+
+Validation: All proactive messaging features can be configured from the merchant dashboard and are demonstrated to work correctly and reliably in a test environment, respecting all platform rules.
+
+Status: [PENDING]

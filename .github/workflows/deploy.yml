@@ -1,0 +1,107 @@
+name: Deploy Instagram AI Agent Platform
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  build-and-deploy-backend:
+    runs-on: ubuntu-latest
+    name: Build and Deploy Backend
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./backend
+    
+    - name: Build backend
+      run: npm run build
+      working-directory: ./backend
+    
+    - name: Deploy to Azure App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: ./backend
+
+  build-and-deploy-merchant-frontend:
+    runs-on: ubuntu-latest
+    name: Build and Deploy Merchant Frontend
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend-merchant/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./frontend-merchant
+    
+    - name: Build merchant frontend
+      run: npm run build
+      working-directory: ./frontend-merchant
+      env:
+        VITE_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        VITE_INSTAGRAM_APP_ID: ${{ secrets.INSTAGRAM_APP_ID }}
+    
+    - name: Deploy to Azure Static Web Apps
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_MERCHANT }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        action: "upload"
+        app_location: "./frontend-merchant"
+        output_location: "dist"
+
+  build-and-deploy-admin-frontend:
+    runs-on: ubuntu-latest
+    name: Build and Deploy Admin Frontend
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend-admin/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./frontend-admin
+    
+    - name: Build admin frontend
+      run: npm run build
+      working-directory: ./frontend-admin
+      env:
+        VITE_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+    
+    - name: Deploy to Azure Static Web Apps
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ADMIN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        action: "upload"
+        app_location: "./frontend-admin"
+        output_location: "dist" 
